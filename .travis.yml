@@ -1,0 +1,23 @@
+sudo: required
+services:
+    - docker
+
+before_install: 
+    - docker build -t  mcruzcl/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+    - docker run -e CI=true mcruzcl/react-test npm test
+
+
+after_sucess:
+    - docker build -t mcruzcl/multi-client ./client
+    - docker build -t mcruzcl/multi-nginx ./nginx
+    - docker build -t mcruzcl/multi-server ./server
+    - docker build -t mcruzcl/multi-worker ./worker
+    #Log in to the docker CLI
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin  
+    #Take those images and push them to docker
+    - docker push mcruzcl/multi-client 
+    - docker push mcruzcl/multi-nginx
+    - docker push mcruzcl/multi-server
+    - docker push mcruzcl/multi-worker
